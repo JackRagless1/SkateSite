@@ -1,0 +1,18 @@
+<!DOCTYPE HTML>
+<html>
+<head>          
+    <title>Login</title>
+</head>
+
+<body>
+    <form action="processlogin.php" method="POST">
+        Username:<input type="text" name="Username"><br>
+        
+        Password:<input type="password" name="Password"><br>
+        
+        <input type="submit" value="Login">
+    </form>
+    
+
+</body>
+</html>
