@@ -1,11 +1,32 @@
 
+<?php
+require_once 'connection.php';
+//find bestselling products
+
+$sql = "SELECT tblitems.itemID, tblitems.itemName, tblitems.descrip, tblitems.price,
+        tblphotos.photoLink,
+        SUM(tblorderitems.quantity) AS unitsSold
+        FROM tblitems
+        INNER JOIN tblorderitems ON tblitems.itemID = tblorderitems.itemID
+        LEFT JOIN tblitemhasphoto ON tblitems.itemID = tblitemhasphoto.itemID
+        LEFT JOIN tblphotos ON tblitemhasphoto.photoID = tblphotos.photoID
+        GROUP BY tblitems.itemID, tblitems.itemName, tblitems.descrip,
+                 tblitems.price, tblphotos.photoLink
+        ORDER BY unitsSold DESC
+        LIMIT 4";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute();
+$bestSellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>SkateBox</title>
 
-    <!-- Bootstrap CSS-->
+    <!-- Bootstrap CSS: https://www.w3schools.com/bootstrap5/ -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -82,6 +103,38 @@
             margin: auto;
         }
 
+        /* Bestselling products */
+        .bestsellers {
+            padding: 45px 0;
+        }
+
+        .product-card {
+            height: 100%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: none;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            padding: 15px;
+        }
+
+        .product-card .card-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card .btn {
+            margin-top: auto;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
         /* Footer */
         footer {
             background-color: #212529;
@@ -133,6 +186,7 @@
     </nav>
 
     <main>
+
         <!-- Search bar -->
         <section class="search-section">
             <div class="search-form">
@@ -145,7 +199,7 @@
             </div>
         </section>
 
-        <!-- welcome thing -->
+        <!-- Welcome section -->
         <section class="welcome">
             <div class="container">
                 <h1>Welcome to SkateBox</h1>
@@ -153,6 +207,68 @@
                 <a href="products.php" class="btn btn-warning btn-lg">Browse Products</a>
             </div>
         </section>
+
+        <!-- Bestselling products-->
+        <section class="bestsellers">
+            <div class="container">
+                <h2 class="text-center fw-bold mb-4">Bestselling Products</h2>
+
+                <div class="row row-cols-4 g-4">
+
+                    <?php if (count($bestSellers) > 0): ?>
+
+                        <?php foreach ($bestSellers as $product): ?>
+
+                            <div class="col">
+                                <div class="card product-card">
+
+                                    <!-- Product image -->
+                                    <?php if (!empty($product['photoLink'])): ?>
+                                    <img src="<?php echo htmlspecialchars($product['photoLink']); ?>"
+                                    class="card-img-top product-image"
+                                    alt="<?php echo htmlspecialchars($product['itemName']); ?>">
+                                    <?php else: ?>
+                                    <div class="text-center p-4">No image available</div>
+                                    <?php endif; ?>
+
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <?php echo htmlspecialchars($product['itemName']); ?>
+                                        </h5>
+
+                                        <p class="card-text text-muted">
+                                            <?php echo htmlspecialchars($product['descrip']); ?>
+                                        </p>
+
+                                        <p class="product-price">
+                                            £<?php echo number_format($product['price'], 2); ?>
+                                        </p>
+
+                                        <p class="text-muted">
+                                            <?php echo (int)$product['unitsSold']; ?> units sold
+                                        </p>
+
+                                        <a href="product.php?id=<?php echo (int)$product['itemID']; ?>" class="btn btn-dark">
+                                            View Product
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <?php endforeach; ?>
+
+                    <?php else: ?>
+
+                        <div class="col-12 text-center">
+                            <p class="text-muted">No bestselling products yet.</p>
+                        </div>
+
+                    <?php endif; ?>
+
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Footer -->
