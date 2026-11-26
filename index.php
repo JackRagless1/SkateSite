@@ -1,5 +1,6 @@
 
 <?php
+session_start();
 require_once 'connection.php';
 //find bestselling products
 
@@ -179,7 +180,19 @@ $bestSellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="d-flex gap-2">
                     <a href="wishlist.php" class="btn btn-outline-light">Wishlist</a>
                     <a href="basket.php" class="btn btn-outline-light">Basket</a>
-                    <a href="login.php" class="btn btn-warning">Login</a>
+                    <?php if (isset($_SESSION["loggedinuser"])): ?>
+
+                        <a href="logout.php" class="btn btn-outline-light">
+                            Logout
+                        </a>
+
+                    <?php else: ?>
+
+                        <a href="login.php" class="btn btn-warning">
+                            Login
+                        </a>
+
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
