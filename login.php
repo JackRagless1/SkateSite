@@ -5,6 +5,17 @@
 </head>
 
 <body>
+
+<?php
+if (isset($_GET["error"])) {
+    if ($_GET["error"] == "empty") {
+        echo "<p>Please enter your username and password.</p>";
+    } elseif ($_GET["error"] == "invalid") {
+        echo "<p>Incorrect username or password.</p>";
+    }
+}
+?>
+
     <form action="processlogin.php" method="POST">
         Username:<input type="text" name="Username"><br>
         

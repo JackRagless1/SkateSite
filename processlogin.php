@@ -1,41 +1,41 @@
+
 <?php
 session_start();
-print_r($_POST);
-array_map("htmlspecialchars", $_POST);
-include_once("connection.php");
+require_once 'connection.php';
 
-try{
-    $stmt=$conn->prepare("SELECT * from tblusers WHERE username=:username;");
-    $stmt->bindParam(":username", $_POST["Username"]);
-    $stmt->execute(); 
-
-    //check username
-    if ($stmt->rowCount() == 0) {
-        echo("Invalid Username."); 
-        header("location: login.php");
-    }else{
-        //check password
-        while($row=$stmt->fetch(PDO::FETCH_ASSOC))
-        {
-            print_r($row);
-            $hashed=$row["password"];
-            $attempt=$_POST["Password"];
-
-            if (password_verify($attempt,$hashed)){
-                echo("success");
-                $_SESSION["loggedinuser"]=$row["UserID"];
-                $_SESSION["Type"]=$row["type"];
-                header("location: index.php");
-            }else{
-                echo("Incorrect Password");
-                header("location: login.php");
-            }
-        }
-    }
-}
-catch(PDOException $e)
-{
-    echo("error: " . $e->getMessage());
+if ($_SERVER["REQUEST_METHOD"] != "POST") {
+    header("Location: login.php");
+    exit();
 }
 
+$username = trim($_POST["Username"] ?? "");
+$password = $_POST["Password"] ?? "";
+
+if ($username == "" || $password == "") {
+    header("Location: login.php?error=empty");
+    exit();
+}
+
+$stmt = $conn->prepare("SELECT UserID, Username, Password, Type
+                        FROM tblusers
+                        WHERE Username = :username");
+
+$stmt->bindValue(":username", $username);
+$stmt->execute();
+
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($user && password_verify($password, $user["Password"])) {
+    session_regenerate_id(true);
+
+    $_SESSION["loggedinuser"] = $user["UserID"];
+    $_SESSION["Type"] = $user["Type"];
+    $_SESSION["Username"] = $user["Username"];
+
+    header("Location: index.php");
+    exit();
+} else {
+    header("Location: login.php?error=invalid");
+    exit();
+}
 ?>
